@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facade Designer - Créez votre façade</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0f0f23;
+            color: white;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: #1a1a2e;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 2px solid #e94560;
+        }
+        .logo {
+            font-size: 24px;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            color: #e94560;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 8px;
+            margin: 20px 0 15px;
+            font-size: 16px;
+        }
+        .materials-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .material-btn {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s;
+        }
+        .material-btn:hover, .material-btn.active {
+            border-color: #e94560;
+            background: #0f3460;
+        }
+        .material-color {
+            width: 100%;
+            height: 35px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .element-btn {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            color: white;
+            width: 100%;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .element-btn:hover {
+            background: #0f3460;
+            border-color: #e94560;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-export { background: #2980b9; }
+        .btn-reset { background: #7f8c8d; }
+        .btn-price { background: #27ae60; }
+        .btn-delete { background: #c0392b; }
+        .btn-delete:disabled { background: #555; cursor: not-allowed; opacity: 0.5; }
+        .price-box {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e94560;
+            margin-top: 15px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .price-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e94560;
+        }
+        /* Canvas Area */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            background: #87CEEB;
+        }
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #1a1a2e;
+        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 250px; }
+            .materials-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">🏠 Facade Designer</div>
+            <div class="subtitle">Designez votre façade en 3D</div>
+
+            <!-- Matériaux -->
+            <div class="section-title">🎨 Matériaux</div>
+            <div class="materials-grid" id="materials">
+                <!-- Généré par JS -->
+            </div>
+
+            <!-- Éléments -->
+            <div class="section-title">🏗️ Éléments</div>
+            <div id="elements">
+                <!-- Généré par JS -->
+            </div>
+
+            <!-- Actions -->
+            <div class="section-title">⚙️ Actions</div>
+            <button class="action-btn btn-delete" id="btnDelete" onclick="deleteSelected()" disabled>
+                🗑️ Supprimer élément
+            </button>
+            <button class="action-btn btn-price" onclick="togglePrices()">
+                💰 Afficher/Cacher prix
+            </button>
+            <button class="action-btn btn-export" onclick="exportImage()">
+                📷 Exporter image
+            </button>
+            <button class="action-btn btn-reset" onclick="resetAll()">
+                🔄 Réinitialiser
+            </button>
+
+            <!-- Prix -->
+            <div class="price-box" id="priceBox" style="display:none;">
+                <div class="price-row">
+                    <span>Éléments:</span>
+                    <span id="elementsPrice">0 DH</span>
+                </div>
+                <div class="price-row price-total">
+                    <span>Total estimé:</span>
+                    <span id="totalPrice">0 DH</span>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; font-size:11px; color:#666; text-align:center;">
+                v1.0 - Facade Designer
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-area">
+            <canvas id="canvas3d"></canvas>
+            <div class="loading" id="loading">Chargement 3D...</div>
+            <div class="instructions">
+                🖱️ Cliquez et déplacez pour tourner | 📜 Molette pour zoomer
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
